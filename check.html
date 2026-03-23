@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>동물보호사업소 중식 관리</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <style>
+    * { box-sizing: border-box; }
+    html { touch-action: manipulation; }
+    body { background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #334155; margin: 0; padding: 20px; line-height: 1.5; min-height: 100dvh; }
+    .max-w-7xl { max-width: 1200px; margin: 0 auto; }
+    :root { --primary: #0d9488; --primary-light: #ccfbf1; --secondary: #f97316; --text-dark: #134e4a; }
+    
+    .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: stretch; margin-top: 20px; }
+    .flex-col { display: flex; flex-direction: column; gap: 24px; height: 100%; }
+    
+    .card { background: #ffffff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+    
+    .card-title { font-size: 1.15rem; font-weight: 700; color: var(--text-dark); margin-top: 0; margin-bottom: 16px; border-bottom: 2px solid var(--primary-light); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
+    .summary-box { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; background: var(--primary-light); padding: 16px 20px; border-radius: 12px; border: 1px solid #99f6e4;}
+    .summary-label { font-size: 1rem; color: var(--primary); font-weight: 700; }
+    .summary-value { font-size: 2.5rem; font-weight: 800; color: var(--primary); line-height: 1; }
+    .total-staff { font-size: 1.1rem; color: #115e59; font-weight: bold; }
+    .monthly-total-box { margin-top: 15px; padding: 16px 20px; background: #f8fafc; border-radius: 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; border: 2px dashed #cbd5e1; transition: 0.3s;}
+    .monthly-total-box.active { background: #fff7ed; border-color: #fed7aa; }
+    .monthly-total-label { font-weight: bold; color: var(--text-dark); font-size: 1.05rem;}
+    .monthly-total-value { font-size: 1.8rem; font-weight: 800; color: var(--secondary); line-height: 1;}
+    
+    .consonant-group { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; overflow-x: visible; padding-bottom: 12px; margin-bottom: 12px; }
+    .consonant-group::-webkit-scrollbar { height: 0; }
+    
+    .consonant-btn { flex-shrink: 0; padding: 10px 10px; border-radius: 20px; background: #f1f5f9; color: #64748b; font-weight: bold; font-size: 1.05rem; border: none; cursor: pointer; transition: 0.2s; outline: none; width: 100%; box-sizing: border-box; }
+    .consonant-btn:active { background: #bae6fd; color: #0ea5e9; }
+    .consonant-btn.active { background: var(--primary); color: white; box-shadow: 0 2px 6px rgba(13, 148, 136, 0.3); }
+    
+    .search-empty { text-align: center; padding: 30px 20px; color: #94a3b8; font-weight: bold; background: #f8fafc; border-radius: 12px; margin-top: 10px; font-size: 0.98rem;}
+    
+    .staff-list-container { flex-grow: 1; overflow-y: auto; overflow-x: hidden; padding-bottom: 10px; padding-right: 5px; }
+    .staff-list-container::-webkit-scrollbar { width: 6px; }
+    .staff-list-container::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+    
+    .staff-list { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; width: 100%; }
+    
+    .staff-item { flex-direction: column; justify-content: center; text-align: center; gap: 12px; min-width: 82px; padding: 16px 10px; border: 1px solid transparent; border-bottom: 1px solid #f1f5f9; cursor: pointer; display: flex; transition: 0.2s; border-radius: 12px; background: #f8fafc; box-sizing: border-box; }
+    .staff-item.active { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(13, 148, 136, 0.3);}
+    .staff-name { font-weight: bold; font-size: 1.05rem; word-break: keep-all; color: #1e293b; }
+    
+    .status-badge { background: #e2e8f0; color: #475569; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; white-space: nowrap;}
+    .status-badge.eating { background: var(--secondary); color: white; }
+    
+    .calendar-header { display: flex; justify-content: space-between; align-items: flex-start; flex-direction: column; gap: 6px; margin-bottom: 12px;}
+    .calendar-title { font-size: 1.05rem; font-weight: bold; color: var(--text-dark); }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4.2px; text-align: center; }
+    .weekday { font-weight: bold; color: #64748b; padding-bottom: 8px; font-size: 0.8rem;}
+    
+    .day-cell { aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; border: 1px solid #e2e8f0; border-radius: 8.4px; cursor: pointer; transition: 0.2s; position: relative; width: 94.5%; font-size: 0.997rem; min-width: 25.2px; min-height: 25.2px; margin: auto; }
+    .day-number { font-size: 0.8925rem; font-weight: 600; margin-bottom: 2.1px; color: #334155;} 
+    
+    /* 개인 식수 달력용 O/X 상태 */
+    .day-status { width: 20.79px; height: 20.79px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 0.70875rem; font-weight: bold; background: #f1f5f9; color: #cbd5e1; }
+    .day-cell.checked { background-color: #fff7ed; border-color: #fed7aa; }
+    .day-cell.checked .day-status { background-color: var(--secondary); color: white; }
+    .day-cell.checked .day-status::after { content: 'O'; }
+    .day-cell:not(.checked):not(.disabled) .day-status::after { content: 'X'; }
+    
+    .day-cell.disabled { background-color: #f8fafc; border-color: #f1f5f9; cursor: not-allowed; }
+    .day-cell.disabled .day-number { color: #cbd5e1 !important; }
+    .day-cell.disabled .day-status { background: transparent; color: #94a3b8; font-size: 0.80325rem; width: auto; height: auto;}
+    .day-cell.disabled .day-status::after { content: '휴무'; } 
+    .day-cell.today { border: 2.1px solid var(--primary); }
+    .day-cell.today::before { content: '오늘'; position: absolute; top: -6.3px; font-size: 0.61425rem; background: var(--primary); color: white; padding: 2.1px 5.25px; border-radius: 10.5px; font-weight: bold;}
+    
+    /* 🔥 2주 전체 식수 인원용 스타일 (배경 투명, 글자 검정색, 글자 크기 더 축소) */
+    .summary-status { width: 32px; height: 32px; display: flex; justify-content: center; align-items: center; font-size: 0.75rem; font-weight: bold; margin-top: 2px; letter-spacing: -0.5px; }
+    .summary-status.has-count { background: transparent; color: #000000; font-size: 0.8rem; font-weight: 900; box-shadow: none; }
+    .summary-status.no-count { background: transparent; color: #94a3b8; font-size: 0.8rem; }
+    .summary-status.closed { background: transparent; color: #94a3b8; font-size: 0.75rem; }
+
+    /* 날짜 클릭 시 명단 배열용 클래스 추가 */
+    .expected-staff-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .expected-staff-item { padding: 6px 14px; border-radius: 20px; background: #ffffff; color: var(--primary); border: 1.5px solid var(--primary-light); font-size: 0.95rem; font-weight: bold; word-break: keep-all; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+
+    .toast { position: fixed; bottom: 5vw; left: 4vw; right: 4vw; text-align: center; background: #334155; color: white; padding: 12px 24px; border-radius: 8px; font-weight: bold; transform: translateY(150%); transition: 0.3s; z-index: 1000; max-width: 92vw; opacity: 0; visibility: hidden; pointer-events: none; }
+    .toast.show { transform: translateY(0); opacity: 1; visibility: visible; }
+    #loadingOverlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: bold; color: var(--primary); font-size: 1.2rem; transition: 0.5s; }
+    .hidden { opacity: 0; pointer-events: none; }
+    .calendar-area-hidden { display: none !important; }
+    .main-state-hidden { display: none !important; }
+    
+    .reset-btn { background: var(--primary-light); color: var(--primary); border: none; border-radius: 15px; padding: 14px 20px; font-size: 1.05rem; font-weight: bold; cursor: pointer; margin-top: auto; transition: background 0.18s; outline: none; width: 100%; white-space: normal; word-break: keep-all; line-height: 1.4; display: block;}
+    .reset-btn:active { background: #34d399; color: #065f46;}
+    
+    @media (max-width: 768px) {
+      body { padding: 4vw; height: auto; }
+      .grid-container { display: flex; flex-direction: column; gap: 16px; margin-top: 10px; }
+      .card { padding: 20px 16px; border-radius: 12px; width: 100%; height: auto; }
+      .staff-list-container { max-height: 45vh; padding-right: 4px; }
+      .consonant-group { grid-template-columns: repeat(6, 1fr) !important; gap: 6px; margin-bottom: 12px; }
+      .consonant-btn { font-size: 1rem; padding: 8px 2px; border-radius: 12px; }
+      .staff-list { grid-template-columns: repeat(4, 1fr) !important; gap: 8px; }
+      .staff-item { padding: 12px 4px; gap: 8px; min-width: 0; border-radius: 10px; }
+      .staff-name { font-size: 0.9rem; }
+      .status-badge { padding: 4px 6px; font-size: 0.75rem; }
+      .calendar-area { z-index: 1; }
+      h1 { font-size: 1.2rem !important; }
+      .calendar-grid { gap: 4px; } 
+      .day-cell { width: 100%; font-size: 0.95rem; min-width: auto; min-height: auto; border-radius: 6px; } 
+      .day-number { font-size: 0.85rem; }
+      .day-status { width: 22px; height: 22px; font-size: 0.7rem; }
+      
+      /* 모바일용 식수 인원 글자 크기 더 축소 */
+      .summary-status { width: 26px; height: 26px; font-size: 0.75rem; }
+      .summary-status.has-count { font-size: 0.75rem; }
+
+      /* 모바일에서 명단 클릭 시 무조건 4명이 1줄로 나오도록 Grid 적용 */
+      .expected-staff-grid { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; gap: 6px; }
+      .expected-staff-item { padding: 8px 2px !important; font-size: 0.85rem !important; border-radius: 10px !important; width: 100%; box-sizing: border-box; text-align: center; }
+
+      /* 🔥 모바일 레이아웃 순서 변경: 달력 영역을 '내 이름 선택하기' 상자 위로 배치 */
+      .flex-col { display: contents; }
+      .main-group { order: 1; }
+      #todayStaffContainer { order: 2; }
+      #calendarCard { order: 3; }
+      #selectNameCard { order: 4; }
+      
+      /* 🔥 모바일 환경에서 직원을 선택했을 때(리셋 버튼만 남기기) 다른 요소들을 숨김 */
+      #selectNameCard.staff-selected .card-title,
+      #selectNameCard.staff-selected .consonant-group,
+      #selectNameCard.staff-selected .staff-list-container {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loadingOverlay">
+    <div style="font-size: 3rem; margin-bottom: 10px;">📡</div>
+    <div>데이터베이스 연동 중...</div>
+  </div>
+
+  <div id="toastMessage" class="toast">저장되었습니다.</div>
+
+  <div class="max-w-7xl">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px; flex-wrap: wrap;">
+      <span style="font-size: 1.5rem;">🐾</span>
+      <h1 style="color: var(--text-dark); margin: 0; flex:1 1 auto;">동물보호사업소 구내식당 관리</h1>
+    </div>
+    <p style="color: #64748b; margin-top: 5px; font-size: 0.9rem;">직원용 월간 점심 식사 체크</p>
+
+    <div class="grid-container">
+      <div class="flex-col">
+        <div class="card main-group" style="flex-grow: 0;">
+          <div class="summary-box">
+            <div class="summary-label"><span id="todayLabel">오늘() 총 식사 인원</span></div>
+            <div>
+              <span class="summary-value" id="todayCount">0</span>
+              <span class="total-staff">/ <span id="totalStaffCount">0</span>명</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="todayStaffContainer" style="margin-bottom: 5px; text-align: center;"></div>
+
+        <div class="card" id="selectNameCard" style="flex-grow: 1;">
+          <h2 class="card-title" style="font-size: 1.1rem;">내 이름 선택하기</h2>
+          <div class="consonant-group" id="consonantGroup"></div>
+          
+          <div class="staff-list-container">
+            <ul class="staff-list" id="staffList"></ul>
+            <div id="emptyMessage" class="search-empty" style="display: none;">해당 초성의 직원이 없습니다. 😢</div>
+          </div>
+          
+          <button class="reset-btn" id="resetBtn">뒤로 가기(다른 직원 선택)</button>
+        </div>
+      </div>
+
+      <div class="card calendar-area calendar-area-hidden" id="calendarCard">
+        <div class="calendar-header">
+          <div class="calendar-title" id="calendarTitle">금주/차주 예상 식수 인원</div>
+          <div style="color: #64748b; font-weight: bold; font-size: 0.9rem;" id="calendarMonthText">2026년 3월</div>
+        </div>
+        
+        <div class="calendar-grid" style="margin-bottom: 8px;">
+          <div class="weekday" style="color: #ef4444;">일</div>
+          <div class="weekday">월</div>
+          <div class="weekday">화</div>
+          <div class="weekday">수</div>
+          <div class="weekday">목</div>
+          <div class="weekday">금</div>
+          <div class="weekday" style="color: var(--primary);">토</div>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+        
+        <div id="expectedStaffListContainer" style="margin-top: 15px; display: none; background: #f0fdf4; padding: 16px; border-radius: 12px; border: 1px solid #bbf7d0; text-align: center; transition: 0.3s;"></div>
+        
+        <div id="monthlyTotalBox" class="monthly-total-box">
+          <span class="monthly-total-label">이번 달 나의 총 식사 신청 수</span>
+          <div>
+            <span class="monthly-total-value" id="monthlyTotalCount">0</span>
+            <span style="font-weight: bold; color: #94a3b8; font-size: 1.1rem; margin-left: 2px;">일 (식)</span>
+          </div>
+        </div>
+        
+        <div style="margin-top: 15px; margin-bottom: 15px; text-align: center; color: #94a3b8; font-size: 0.85rem;">💡 휴무일(주말 및 공휴일, <strong>관리자 지정 휴일</strong>)은 쉽니다.</div>
+        </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyB3G_qPJCu-J754PLBB0zETPsWIB8wi4H0",
+        authDomain: "lunch-check-app-temp.firebaseapp.com",
+        projectId: "lunch-check-app-temp",
+        storageBucket: "lunch-check-app-temp.firebasestorage.app",
+        messagingSenderId: "140909618699",
+        appId: "1:140909618699:web:15054d9f11d45bfc56890e",
+        measurementId: "G-F3VSX6TPE4",
+        databaseURL: "https://lunch-check-app-temp-default-rtdb.asia-southeast1.firebasedatabase.app"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    function getTodayInfo() {
+      const now = new Date();
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const KST_DIFF = 9 * 60 * 60000;
+      const kstDate = new Date(utc + KST_DIFF);
+
+      const year = kstDate.getFullYear();
+      const month = kstDate.getMonth() + 1; 
+      const date = kstDate.getDate();
+      return { year, month, date };
+    }
+
+    const { year: TARGET_YEAR, month: TARGET_MONTH, date: TODAY } = getTodayInfo();
+    let PUBLIC_HOLIDAYS = []; 
+
+    const TODAY_KEY = `${TARGET_YEAR}-${TARGET_MONTH}-${TODAY}`;
+    const CHOSUNG_LIST = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+    
+    let staffData = [];
+    let manualHolidaysMap = {}; 
+
+    let selectedStaffId = null; 
+    let selectedChosung = '전체'; 
+
+    const staffListEl = document.getElementById('staffList');
+    const calendarGridEl = document.getElementById('calendarGrid');
+    const calendarTitleEl = document.getElementById('calendarTitle');
+    const todayCountEl = document.getElementById('todayCount');
+    const totalStaffCountEl = document.getElementById('totalStaffCount');
+    const toastMessage = document.getElementById('toastMessage');
+    const consonantGroupEl = document.getElementById('consonantGroup');
+    const emptyMessage = document.getElementById('emptyMessage');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const calendarCard = document.getElementById('calendarCard');
+    const todayStaffContainer = document.getElementById('todayStaffContainer');
+    const mainGroupCards = document.getElementsByClassName('main-group');
+    const monthlyTotalCountEl = document.getElementById('monthlyTotalCount');
+    const monthlyTotalBox = document.getElementById('monthlyTotalBox');
+    const todayLabelEl = document.getElementById('todayLabel');
+    const calendarMonthText = document.getElementById('calendarMonthText');
+    const expectedStaffListContainer = document.getElementById('expectedStaffListContainer');
+
+    function updateTodayLabel() {
+      todayLabelEl.textContent = `오늘(${TODAY}일) 총 식사 인원`;
+    }
+    updateTodayLabel();
+
+    function listenToDB() {
+      onSnapshot(collection(db, "staff"), (snapshot) => {
+        const newData = [];
+        snapshot.forEach((doc) => { newData.push({ id: doc.id, ...doc.data() }); });
+        newData.sort((a, b) => (a.order || 0) - (b.order || 0));
+        staffData = newData;
+
+        loadingOverlay.classList.add('hidden');
+        renderConsonantButtons();
+        updateTodayCount();
+        renderStaffList();
+        renderCalendar();
+        renderTodayStaffListArea();
+      });
+    }
+
+    function listenToHolidays() {
+      onSnapshot(doc(db, "settings", "holidays"), (docSnap) => {
+        if (docSnap.exists()) {
+          manualHolidaysMap = docSnap.data();
+        } else {
+          manualHolidaysMap = {};
+        }
+        renderCalendar(); 
+      });
+    }
+
+    window.toggleAttendance = async function(staffId, day) {
+      const staff = staffData.find(s => s.id === staffId);
+      const dateKey = `${TARGET_YEAR}-${TARGET_MONTH}-${day}`;
+      
+      const newAttendance = { ...(staff.attendance || {}) }; 
+      newAttendance[dateKey] = !newAttendance[dateKey]; 
+
+      try {
+        await updateDoc(doc(db, "staff", String(staffId)), { attendance: newAttendance });
+        showToast(`${staff.name}님의 ${TARGET_MONTH}월 ${day}일 식사가 ${newAttendance[dateKey] ? '등록' : '취소'}되었습니다.`);
+      } catch (error) { showToast("오류가 발생했습니다."); }
+    };
+
+    window.showExpectedStaffList = function(dateKey, month, day) {
+      const eatingStaff = staffData.filter(staff => staff.attendance && staff.attendance[dateKey]);
+      
+      if (eatingStaff.length === 0) {
+        expectedStaffListContainer.innerHTML = `<div style="color:#64748b; font-weight:bold; font-size:1.05rem;">${month}월 ${day}일 식사를 신청한 직원이 없습니다.</div>`;
+      } else {
+        let listHtml = `<div style="font-weight: bold; color: var(--text-dark); margin-bottom: 12px; font-size: 1.05rem;">🗓 ${month}월 ${day}일 식사 신청 명단 (${eatingStaff.length}명)</div>
+                        <div class="expected-staff-grid">` +
+          eatingStaff.map(staff => `<div class="expected-staff-item">${staff.name}</div>`).join('') + `</div>`;
+        expectedStaffListContainer.innerHTML = listHtml;
+      }
+      expectedStaffListContainer.style.display = 'block';
+    };
+
+    async function fetchPublicHolidays(year, month) {
+      const API_KEY = "발급받은_API_키를_여기에_입력하세요"; 
+      const monthStr = String(month).padStart(2, '0');
+      const url = `https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear=${year}&solMonth=${monthStr}&ServiceKey=${API_KEY}&_type=json`;
+      try {
+        if (API_KEY.includes("발급받은_API_키를")) return [1]; 
+        const response = await fetch(url);
+        const json = await response.json();
+        const items = json.response?.body?.items?.item;
+        if (!items) return []; 
+        let holidays = [];
+        if (Array.isArray(items)) { holidays = items.filter(item => item.isHoliday === "Y").map(item => parseInt(String(item.locdate).slice(-2), 10)); } 
+        else if (items.isHoliday === "Y") { holidays.push(parseInt(String(items.locdate).slice(-2), 10)); }
+        return holidays;
+      } catch (error) { return [1]; }
+    }
+
+    function getInitialConsonant(name) {
+      if (!name) return "";
+      const code = name.charCodeAt(0) - 44032; 
+      if (code > -1 && code < 11172) return CHOSUNG_LIST[Math.floor(code / 588)];
+      return name.charAt(0);
+    }
+
+    function getActiveConsonants() {
+      const activeSet = new Set();
+      staffData.forEach(staff => { const initial = getInitialConsonant(staff.name); if (initial) activeSet.add(initial); });
+      const sortedConsonants = Array.from(activeSet).sort((a, b) => CHOSUNG_LIST.indexOf(a) - CHOSUNG_LIST.indexOf(b));
+      return ['전체', ...sortedConsonants];
+    }
+
+    function renderConsonantButtons() {
+      consonantGroupEl.innerHTML = '';
+      const activeConsonants = getActiveConsonants();
+      if (!activeConsonants.includes(selectedChosung)) selectedChosung = '전체';
+
+      activeConsonants.forEach(conso => {
+        const btn = document.createElement('button');
+        btn.className = `consonant-btn ${conso === selectedChosung ? 'active' : ''}`;
+        btn.textContent = conso;
+        btn.addEventListener('click', () => { selectedChosung = conso; renderConsonantButtons(); renderStaffList(); });
+        consonantGroupEl.appendChild(btn);
+      });
+    }
+
+    function updateTodayCount() {
+      const count = staffData.filter(staff => staff.attendance && staff.attendance[TODAY_KEY]).length;
+      todayCountEl.textContent = count;
+      totalStaffCountEl.textContent = staffData.length;
+    }
+
+    function renderTodayStaffListArea() {
+      if (selectedStaffId !== null) { todayStaffContainer.style.display = 'none'; return; }
+      const eatingToday = staffData.filter(staff => staff.attendance && staff.attendance[TODAY_KEY]);
+      if (eatingToday.length === 0) {
+        todayStaffContainer.innerHTML = '<div style="color:#bdbdbd;font-weight:bold; font-size:1.05rem;">오늘 식사를 신청한 직원이 없습니다.</div>';
+        todayStaffContainer.style.display = 'block';
+        return;
+      }
+      let listHtml = '<div style="font-weight: bold; color: var(--secondary); margin-bottom: 10px; font-size: 1.01rem;">오늘 식사 신청 직원 명단</div><div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:3px;">' +
+        eatingToday.map(staff => `<div style="padding:6px 15px;border-radius:25px;background:#fef9c3;color:#a16207;border:1.5px solid #fde047;font-size:0.95rem; font-weight:600;word-break:keep-all;">${staff.name}</div>`).join('') + '</div>';
+      todayStaffContainer.innerHTML = listHtml;
+      todayStaffContainer.style.display = 'block';
+    }
+
+    function renderStaffList() {
+      staffListEl.innerHTML = '';
+
+      if(selectedStaffId !== null) {
+        const staff = staffData.find(staff => staff.id === selectedStaffId);
+        if (staff) {
+          const li = document.createElement('li');
+          const isTodayEating = staff.attendance && staff.attendance[TODAY_KEY];
+          li.className = `staff-item active`;
+          li.innerHTML = `<div><div class="staff-name">${staff.name}</div></div><div class="status-badge ${isTodayEating ? 'eating' : ''}">오늘 ${isTodayEating ? 'O' : 'X'}</div>`;
+          staffListEl.style.display = 'grid';
+          staffListEl.appendChild(li);
+        } else {
+          staffListEl.style.display = 'none';
+        }
+        emptyMessage.style.display = 'none';
+        return;
+      }
+
+      const filteredStaff = staffData.filter(staff => {
+        if (selectedChosung === '전체') return true;
+        return getInitialConsonant(staff.name) === selectedChosung;
+      });
+
+      if(filteredStaff.length === 0) {
+        staffListEl.style.display = 'none'; emptyMessage.style.display = 'block';
+      } else {
+        staffListEl.style.display = 'grid'; emptyMessage.style.display = 'none';
+        filteredStaff.forEach(staff => {
+          const li = document.createElement('li');
+          const isTodayEating = staff.attendance && staff.attendance[TODAY_KEY];
+          li.className = `staff-item ${staff.id === selectedStaffId ? 'active' : ''}`;
+          li.innerHTML = `<div><div class="staff-name">${staff.name}</div></div><div class="status-badge ${isTodayEating ? 'eating' : ''}">오늘 ${isTodayEating ? 'O' : 'X'}</div>`;
+          li.addEventListener('click', () => {
+            selectedStaffId = staff.id; showMainState(false); renderStaffList(); renderCalendar(); renderTodayStaffListArea(); 
+          });
+          staffListEl.appendChild(li);
+        });
+      }
+    }
+
+    function showMainState(showMain) {
+      for (let el of mainGroupCards) {
+        if (showMain) el.classList.remove('main-state-hidden'); else el.classList.add('main-state-hidden');
+      }
+      if (showMain) calendarCard.classList.remove('calendar-area-hidden');
+
+      // 🔥 직원이 선택됐는지 판단하여 모바일 환경 숨김 처리용 클래스 추가/제거
+      const selectNameCard = document.getElementById('selectNameCard');
+      if (selectNameCard) {
+        if (showMain) {
+          selectNameCard.classList.remove('staff-selected');
+        } else {
+          selectNameCard.classList.add('staff-selected');
+        }
+      }
+    }
+
+    function renderCalendar() {
+      if (!selectedStaffId) {
+        calendarCard.classList.remove('calendar-area-hidden'); 
+        calendarTitleEl.innerHTML = `<span style="color: var(--primary);">금주/차주</span> 예상 식수 인원`;
+        calendarGridEl.innerHTML = '';
+        
+        monthlyTotalCountEl.textContent = 0; 
+        monthlyTotalBox.style.display = 'none'; 
+        expectedStaffListContainer.style.display = 'none'; 
+        renderTodayStaffListArea(); 
+
+        const currentDate = new Date(TARGET_YEAR, TARGET_MONTH - 1, TODAY);
+        const startOfThisWeek = new Date(currentDate);
+        startOfThisWeek.setDate(currentDate.getDate() - currentDate.getDay()); 
+
+        const endOfNextWeek = new Date(startOfThisWeek);
+        endOfNextWeek.setDate(startOfThisWeek.getDate() + 13);
+        
+        calendarMonthText.textContent = `${startOfThisWeek.getMonth() + 1}월 ${startOfThisWeek.getDate()}일 ~ ${endOfNextWeek.getMonth() + 1}월 ${endOfNextWeek.getDate()}일`;
+
+        for (let i = 0; i < 14; i++) {
+          const d = new Date(startOfThisWeek);
+          d.setDate(startOfThisWeek.getDate() + i);
+          
+          const y = d.getFullYear();
+          const m = d.getMonth() + 1;
+          const day = d.getDate();
+          const dayIndex = d.getDay(); 
+          const dateKey = `${y}-${m}-${day}`;
+          
+          const monthKey = `${y}-${m}`;
+          const manualHolidays = manualHolidaysMap[monthKey] || [];
+          
+          const isPublicHoliday = (m === TARGET_MONTH) ? PUBLIC_HOLIDAYS.includes(day) : false;
+          const isManualHoliday = manualHolidays.includes(day);
+          const isClosed = (dayIndex === 0 || dayIndex === 6) || isPublicHoliday || isManualHoliday;
+          
+          let count = 0;
+          if (!isClosed) {
+            count = staffData.filter(staff => staff.attendance && staff.attendance[dateKey]).length;
+          }
+
+          const dayCell = document.createElement('div');
+          
+          let dateColor = '';
+          if(dayIndex === 0 || isPublicHoliday || isManualHoliday) dateColor = 'color: #fca5a5;'; 
+          else if(dayIndex === 6) dateColor = 'color: #93c5fd;'; 
+
+          const isToday = (y === TARGET_YEAR && m === TARGET_MONTH && day === TODAY);
+
+          if (isClosed) {
+             dayCell.className = `day-cell disabled`;
+             dayCell.style.cursor = 'pointer';
+             dayCell.innerHTML = `<div class="day-number" style="${dateColor}">${day}</div>
+                                  <div class="summary-status closed">휴무</div>`;
+          } else {
+             dayCell.className = `day-cell ${count > 0 ? 'checked' : ''} ${isToday ? 'today' : ''}`;
+             const statusClass = count > 0 ? 'has-count' : 'no-count';
+             const statusText = count > 0 ? `${count}명` : '0명';
+             dayCell.innerHTML = `<div class="day-number">${day}</div>
+                                  <div class="summary-status ${statusClass}">${statusText}</div>`;
+          }
+          
+          dayCell.addEventListener('click', () => window.showExpectedStaffList(dateKey, m, day));
+          calendarGridEl.appendChild(dayCell);
+        }
+        return;
+      }
+
+      monthlyTotalBox.style.display = 'flex'; 
+      expectedStaffListContainer.style.display = 'none'; 
+      calendarCard.classList.remove('calendar-area-hidden'); 
+      todayStaffContainer.style.display = 'none';
+
+      const staff = staffData.find(s => s.id === selectedStaffId);
+      if(!staff) return;
+
+      calendarTitleEl.innerHTML = `<span style="color: var(--primary);">${staff.name}</span>님의 이번 달 식사`;
+      calendarMonthText.textContent = `${TARGET_YEAR}년 ${TARGET_MONTH}월`;
+      calendarGridEl.innerHTML = '';
+      let monthlyCheckedCount = 0;
+
+      const daysInMonth = new Date(TARGET_YEAR, TARGET_MONTH, 0).getDate();
+      const firstDayIndex = new Date(TARGET_YEAR, TARGET_MONTH - 1, 1).getDay();
+      
+      const monthKey = `${TARGET_YEAR}-${TARGET_MONTH}`;
+      const manualHolidays = manualHolidaysMap[monthKey] || [];
+
+      for(let i = 0; i < firstDayIndex; i++) calendarGridEl.appendChild(document.createElement('div'));
+
+      for(let day = 1; day <= daysInMonth; day++) {
+        const currentDayIndex = (day - 1 + firstDayIndex) % 7;
+        const isWeekend = (currentDayIndex === 0 || currentDayIndex === 6); 
+        const isPublicHoliday = PUBLIC_HOLIDAYS.includes(day);
+        const isManualHoliday = manualHolidays.includes(day); 
+        const isClosed = isWeekend || isPublicHoliday || isManualHoliday; 
+
+        const dateKey = `${TARGET_YEAR}-${TARGET_MONTH}-${day}`;
+        const isChecked = staff.attendance && staff.attendance[dateKey];
+        const isToday = (day === TODAY);
+        const dayCell = document.createElement('div');
+        
+        if(isChecked && !isClosed) monthlyCheckedCount++;
+
+        if(isClosed) {
+          dayCell.className = `day-cell disabled`;
+          let dateColor = '';
+          if(currentDayIndex === 0 || isPublicHoliday || isManualHoliday) dateColor = 'color: #fca5a5;'; 
+          else if(currentDayIndex === 6) dateColor = 'color: #93c5fd;'; 
+          dayCell.innerHTML = `<div class="day-number" style="${dateColor}">${day}</div><div class="day-status"></div>`;
+        } 
+        else {
+          dayCell.className = `day-cell ${isChecked ? 'checked' : ''} ${isToday ? 'today' : ''}`;
+          dayCell.innerHTML = `<div class="day-number">${day}</div><div class="day-status"></div>`;
+          dayCell.addEventListener('click', () => window.toggleAttendance(staff.id, day));
+        }
+        calendarGridEl.appendChild(dayCell);
+      }
+
+      monthlyTotalCountEl.textContent = monthlyCheckedCount;
+      if(monthlyCheckedCount > 0) monthlyTotalBox.classList.add('active'); else monthlyTotalBox.classList.remove('active');
+    }
+
+    function showToast(msg) {
+      toastMessage.textContent = msg; toastMessage.classList.add('show');
+      setTimeout(() => toastMessage.classList.remove('show'), 2000);
+    }
+
+    function goToInitState() {
+      selectedStaffId = null; selectedChosung = '전체'; showMainState(true);           
+      renderConsonantButtons(); updateTodayCount(); renderStaffList(); renderCalendar(); renderTodayStaffListArea();    
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    window.goToInitState = goToInitState;
+    if (document.getElementById('resetBtn')) document.getElementById('resetBtn').addEventListener('click', goToInitState);
+
+    async function initApp() {
+      PUBLIC_HOLIDAYS = await fetchPublicHolidays(TARGET_YEAR, TARGET_MONTH);
+      listenToDB();
+      listenToHolidays(); 
+    }
+    initApp();
+  </script>
+</body>
+</html>
