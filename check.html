@@ -105,6 +105,230 @@
     .reset-btn { background: var(--primary-light); color: var(--primary); border: none; border-radius: 15px; padding: 14px 20px; font-size: 1.05rem; font-weight: bold; cursor: pointer; margin-top: auto; transition: background 0.18s; outline: none; width: 100%; white-space: normal; word-break: keep-all; line-height: 1.4; display: block;}
     .reset-btn:active { background: #34d399; color: #065f46;}
     
+    /* 테블릿(Tablet) 세로 모드 최적화 - 큰 글자 적용 (해상도 769px ~ 1024px) */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      /* 1. 전체 레이아웃 1단(세로) 배치 */
+      .grid-container { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 24px; 
+      }
+      
+      .card { 
+        width: 100%; 
+        padding: 30px; 
+        height: auto;
+      }
+
+      /* 2. 전체적인 제목 및 핵심 숫자 크기 대폭 확대 */
+      h1 { font-size: 1.8rem !important; }
+      .card-title { font-size: 1.4rem; }
+      .summary-value { font-size: 3.5rem; } /* 오늘 총 식사 인원 숫자 */
+      .total-staff { font-size: 1.4rem; }
+      .monthly-total-label { font-size: 1.3rem; }
+      .monthly-total-value { font-size: 2.5rem; }
+
+      /* 3. 중요도 순 배치 (세로 모드) */
+      .flex-col { display: contents; }
+      .main-group { order: 1; }
+      #todayStaffContainer { order: 2; }
+      #calendarCard { order: 3; }
+      #selectNameCard { order: 4; }
+
+      /* 4. 초성 버튼 (글자가 커져서 6열로 조정) */
+      .consonant-group { 
+        display: grid;
+        grid-template-columns: repeat(6, 1fr) !important; 
+        gap: 12px; 
+      }
+      .consonant-btn { 
+        padding: 14px 6px; 
+        font-size: 1.3rem; 
+      }
+      
+      /* 5. 직원 명단 (글자가 커져서 4열로 조정) */
+      .staff-list { 
+        display: grid;
+        grid-template-columns: repeat(4, 1fr) !important; 
+        gap: 16px; 
+      }
+      .staff-item { 
+        padding: 20px 10px; 
+        gap: 14px;
+      }
+      .staff-name { 
+        font-size: 1.3rem; 
+      }
+      .status-badge {
+        font-size: 1.05rem;
+        padding: 8px 14px;
+      }
+      
+      /* 6. 달력 영역 텍스트 및 터치 영역 확대 */
+      .calendar-title { font-size: 1.3rem; }
+      .weekday { font-size: 1.1rem; }
+      .day-cell { 
+        min-height: 90px; 
+      }
+      .day-number { 
+        font-size: 1.2rem; 
+      }
+      /* 달력 안의 동그라미(O, X, 인원수) 크기 확대 */
+      .day-status, .summary-status { 
+        width: 44px; 
+        height: 44px; 
+        font-size: 1.1rem; 
+      }
+      .summary-status.has-count {
+        font-size: 1.25rem;
+      }
+      
+      /* 7. 날짜 클릭 시 나오는 하단 팝업 명단 (4열) */
+      .expected-staff-grid { 
+        display: grid !important; 
+        grid-template-columns: repeat(4, 1fr) !important; 
+        gap: 12px; 
+      }
+      .expected-staff-item { 
+        padding: 14px; 
+        font-size: 1.2rem; 
+        text-align: center;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      /* 8. 뒤로 가기 버튼 크기 확대 */
+      .reset-btn {
+        font-size: 1.3rem;
+        padding: 18px 20px;
+      }
+
+      /* 9. 직원 선택 시 검색 영역 숨김 처리 */
+      #selectNameCard.staff-selected .card-title,
+      #selectNameCard.staff-selected .consonant-group,
+      #selectNameCard.staff-selected .staff-list-container {
+        display: none !important;
+      }
+    }
+    /* 테블릿(Tablet) 세로 모드 최적화 - 큰 글자 적용 (해상도 769px ~ 1024px) */
+    @media (min-width: 769px) and (max-width: 1024px) {
+      /* 1. 전체 레이아웃 1단(세로) 배치 */
+      .grid-container { 
+        display: flex; 
+        flex-direction: column; 
+        gap: 24px; 
+      }
+      
+      .card { 
+        width: 100%; 
+        padding: 30px; 
+        height: auto;
+      }
+
+      /* 2. 전체적인 제목 및 핵심 숫자 크기 대폭 확대 */
+      h1 { font-size: 1.8rem !important; }
+      .card-title { font-size: 1.4rem; }
+      .summary-value { font-size: 3.5rem; }
+      .total-staff { font-size: 1.4rem; }
+      .monthly-total-label { font-size: 1.3rem; }
+      .monthly-total-value { font-size: 2.5rem; }
+
+      /* 3. 중요도 순 배치 (세로 모드) */
+      .flex-col { display: contents; }
+      .main-group { order: 1; }
+      #todayStaffContainer { order: 2; }
+      #calendarCard { order: 3; }
+      #selectNameCard { order: 4; }
+
+      /* 4. 초성 버튼 (6열) */
+      .consonant-group { 
+        display: grid;
+        grid-template-columns: repeat(6, 1fr) !important; 
+        gap: 12px; 
+      }
+      .consonant-btn { 
+        padding: 14px 6px; 
+        font-size: 1.3rem; 
+      }
+      
+      /* 5. 직원 명단 (4열) */
+      .staff-list { 
+        display: grid;
+        grid-template-columns: repeat(4, 1fr) !important; 
+        gap: 16px; 
+      }
+      .staff-item { 
+        padding: 20px 10px; 
+        gap: 14px;
+      }
+      .staff-name { 
+        font-size: 1.3rem; 
+      }
+      .status-badge {
+        font-size: 1.05rem;
+        padding: 8px 14px;
+      }
+      
+      /* 6. 달력 영역 텍스트 및 터치 영역 확대 */
+      .calendar-title { font-size: 1.3rem; }
+      .weekday { font-size: 1.1rem; }
+      .day-cell { 
+        min-height: 90px; 
+      }
+      .day-number { 
+        font-size: 1.2rem; 
+      }
+      .day-status, .summary-status { 
+        width: 44px; 
+        height: 44px; 
+        font-size: 1.1rem; 
+      }
+      .summary-status.has-count {
+        font-size: 1.25rem;
+      }
+      
+      /* 7. 날짜 클릭 시 나오는 하단 팝업 명단 (4열) */
+      .expected-staff-grid { 
+        display: grid !important; 
+        grid-template-columns: repeat(4, 1fr) !important; 
+        gap: 12px; 
+      }
+      .expected-staff-item { 
+        padding: 14px; 
+        font-size: 1.2rem; 
+        text-align: center;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      /* 8. 뒤로 가기 버튼 크기 확대 */
+      .reset-btn {
+        font-size: 1.3rem;
+        padding: 18px 20px;
+      }
+
+      /* 9. 직원 선택 시 검색 영역 숨김 처리 */
+      #selectNameCard.staff-selected .card-title,
+      #selectNameCard.staff-selected .consonant-group,
+      #selectNameCard.staff-selected .staff-list-container {
+        display: none !important;
+      }
+
+      /* 10. ★ 오늘 식사 신청 직원 명단 텍스트 및 이름표 확대 ★ */
+      #todayStaffContainer > div:first-child {
+        font-size: 1.4rem !important; /* "오늘 식사 신청 직원 명단" 제목 크기 */
+        margin-bottom: 16px !important;
+      }
+      #todayStaffContainer > div:last-child {
+        gap: 14px !important; /* 이름표 사이 간격 넓힘 */
+      }
+      #todayStaffContainer > div:last-child > div {
+        font-size: 1.2rem !important; /* 이름표 안의 글자 크기 */
+        padding: 12px 24px !important; /* 이름표 상하좌우 여백(크기) 확대 */
+        border-radius: 30px !important; /* 둥근 모서리 조정 */
+      }
+    }
+    
     @media (max-width: 768px) {
       body { padding: 4vw; height: auto; }
       .grid-container { display: flex; flex-direction: column; gap: 16px; margin-top: 10px; }
