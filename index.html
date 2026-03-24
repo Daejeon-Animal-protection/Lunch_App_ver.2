@@ -53,7 +53,7 @@
     .cell-x { color: #cbd5e1; }
     .cell-subtotal { background: #f1f5f9; font-weight: bold; color: var(--text-dark); }
     
-    /* ★ 추가: 관리자 권한 수정 가능한 셀 스타일 */
+    /* 관리자 권한 수정 가능한 셀 스타일 */
     .clickable-cell { cursor: pointer; transition: background-color 0.2s; border-radius: 4px;}
     .clickable-cell:hover { background-color: #e2e8f0; }
     
@@ -104,7 +104,7 @@
           </div>
         </div>
         <div style="margin-bottom: 10px; color: #64748b; font-size: 0.85rem;">
-          💡 주말 및 공휴일을 제외한 실제 평일만 표시됩니다. <strong>(표 안의 O/X를 클릭하면 즉시 수정됩니다)</strong>
+          💡 주말 및 공휴일을 제외한 실제 평일만 표시됩니다. <strong>(표 안의 O/X를 클릭하면 팝업 확인 후 수정됩니다)</strong>
         </div>
         
         <div style="margin-bottom: 16px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px;">
@@ -251,17 +251,27 @@
       } catch(e) { console.error("휴무 설정 오류:", e); }
     };
 
-    // ★ 추가: 관리자가 대장에서 O/X 셀을 클릭하여 식수 강제 수정
+    // ★ 수정: 관리자가 대장에서 O/X 셀을 클릭할 때 확인 팝업창을 띄우고 취소 시 변경 안 됨
     window.toggleAdminAttendance = async function(staffId, dateKey, currentStatus, staffName, day) {
       const staff = adminStaffData.find(s => s.id === staffId);
       if (!staff) return;
+
+      const nextStatusStr = currentStatus ? 'X' : 'O';
+      
+      // 팝업창으로 사용자에게 확인 받기
+      const isConfirmed = confirm(`[관리자 권한 수정]\n${staffName} 직원의 ${day}일 식사 여부를 '${nextStatusStr}'(으)로 변경하시겠습니까?`);
+      
+      // 취소를 눌렀을 경우 함수 종료
+      if (!isConfirmed) {
+        return; 
+      }
 
       const newAttendance = { ...(staff.attendance || {}) };
       newAttendance[dateKey] = !currentStatus; // 현재 상태의 반대로 변경
 
       try {
         await updateDoc(doc(db, "staff", String(staffId)), { attendance: newAttendance });
-        showToast(`${staffName} 직원의 ${day}일 식사가 ${!currentStatus ? 'O' : 'X'}로 수정되었습니다.`);
+        showToast(`${staffName} 직원의 ${day}일 식사가 ${nextStatusStr}로 수정되었습니다.`);
       } catch (e) {
         console.error(e);
         showToast("수정 중 오류가 발생했습니다.");
@@ -347,7 +357,6 @@
           const dateKey = `${viewYear}-${viewMonth}-${day}`;
           const isEating = staff.attendance ? staff.attendance[dateKey] : false; 
           
-          // ★ 수정: 셀 클릭 시 toggleAdminAttendance 함수가 실행되도록 onclick 이벤트 추가 ★
           if(isEating) {
             personalSubTotal++; dailyTotals[day]++; 
             tbodyHtml += `<td class="cell-o clickable-cell" title="클릭하여 X로 변경" onclick="window.toggleAdminAttendance('${staff.id}', '${dateKey}', true, '${staff.name}', ${day})">O</td>`;
