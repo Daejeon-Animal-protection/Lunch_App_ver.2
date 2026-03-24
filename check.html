@@ -90,7 +90,7 @@
     .expected-staff-grid { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
     .expected-staff-item { padding: 6px 14px; border-radius: 20px; background: #ffffff; color: var(--primary); border: 1.5px solid var(--primary-light); font-size: 0.95rem; font-weight: bold; word-break: keep-all; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
 
-    /* ★ 추가된 오늘 식사 명단 클릭 스타일 (DB 연동 없이 화면 색상만 변경) ★ */
+    /* 오늘 식사 명단 클릭 스타일 */
     .today-staff-item { padding: 6px 15px; border-radius: 25px; background: #fef9c3; color: #000000; border: 1.5px solid #fde047; font-size: 0.95rem; font-weight: 600; word-break: keep-all; cursor: pointer; transition: background-color 0.2s, color 0.2s; }
     .today-staff-item.checked { background-color: #fb923c !important; border-color: #f97316 !important; color: #ffffff !important; }
 
@@ -241,7 +241,7 @@
           <div class="calendar-grid" id="thisMonthGrid"></div>
 
           <div id="monthlyTotalBox" class="monthly-total-box">
-            <span class="monthly-total-label">이번 달 식사 신청 수</span>
+            <span class="monthly-total-label">이번 달 나의 총 식사 신청 수</span>
             <div>
               <span class="monthly-total-value" id="monthlyTotalCount">0</span>
               <span style="font-weight: bold; color: #94a3b8; font-size: 1.1rem; margin-left: 2px;">일 (식)</span>
@@ -256,7 +256,7 @@
             <div class="weekday">수</div><div class="weekday">목</div><div class="weekday">금</div><div class="weekday" style="color: var(--primary);">토</div>
           </div>
           <div class="calendar-grid" id="nextMonthGrid"></div>
-          <div style="text-align: right; color: #94a3b8; font-size: 0.8rem; margin-top: 8px;">* 다음 달 첫주 미리 신청해주세요.</div>
+          <div style="text-align: right; color: #94a3b8; font-size: 0.8rem; margin-top: 8px;">* 다음 달은 첫 2주(14일)까지만 미리 신청할 수 있습니다.</div>
         </div>
         
         <div style="margin-top: 15px; margin-bottom: 15px; text-align: center; color: #94a3b8; font-size: 0.85rem;">💡 휴무일(주말 및 공휴일, <strong>관리자 지정 휴일</strong>)은 쉽니다.</div>
@@ -388,12 +388,13 @@
       expectedStaffListContainer.style.display = 'block';
     };
 
+    // ★ 수정: API 키 오류 또는 미입력 시 임시 반환값을 [1]에서 []로 변경
     async function fetchPublicHolidays(year, month) {
       const API_KEY = "발급받은_API_키를_여기에_입력하세요"; 
       const monthStr = String(month).padStart(2, '0');
       const url = `https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService/getRestDeInfo?solYear=${year}&solMonth=${monthStr}&ServiceKey=${API_KEY}&_type=json`;
       try {
-        if (API_KEY.includes("발급받은_API_키를")) return [1]; 
+        if (API_KEY.includes("발급받은_API_키를")) return []; // 변경 완료
         const response = await fetch(url);
         const json = await response.json();
         const items = json.response?.body?.items?.item;
@@ -402,7 +403,7 @@
         if (Array.isArray(items)) { holidays = items.filter(item => item.isHoliday === "Y").map(item => parseInt(String(item.locdate).slice(-2), 10)); } 
         else if (items.isHoliday === "Y") { holidays.push(parseInt(String(items.locdate).slice(-2), 10)); }
         return holidays;
-      } catch (error) { return [1]; }
+      } catch (error) { return []; } // 변경 완료
     }
 
     function getInitialConsonant(name) {
@@ -450,7 +451,7 @@
         return;
       }
 
-      let listHtml = '<div style="font-weight: bold; color: var(--secondary); margin-bottom: 10px; font-size: 1.01rem;">오늘 식사 신청 명단 (주방 확인용)</div>';
+      let listHtml = '<div style="font-weight: bold; color: var(--secondary); margin-bottom: 10px; font-size: 1.01rem;">오늘 식사 신청 명단 (클릭 시 확인 표시)</div>';
       listHtml += '<div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:3px;" id="todayStaffListContainer"></div>';
       
       todayStaffContainer.innerHTML = listHtml;
@@ -632,17 +633,14 @@
 
       let monthlyCheckedCount = 0;
 
-      // ★ 추가: maxDays 인자를 추가하여 특정 일수까지만 표시 가능하게 설정 ★
       function drawMonth(year, month, gridEl, isCurrentMonth, publicHolidays, maxDays = null) {
         const totalDaysInMonth = new Date(year, month, 0).getDate();
-        // maxDays가 설정된 경우 (다음 달 2주) 14일과 해당 월의 총 일수 중 작은 값을 선택
         const daysToDraw = maxDays ? Math.min(maxDays, totalDaysInMonth) : totalDaysInMonth;
         
         const firstDayIndex = new Date(year, month - 1, 1).getDay();
         const monthKey = `${year}-${month}`;
         const manualHolidays = manualHolidaysMap[monthKey] || [];
 
-        // 첫 주의 빈 칸 채우기
         for(let i = 0; i < firstDayIndex; i++) gridEl.appendChild(document.createElement('div'));
 
         for(let day = 1; day <= daysToDraw; day++) {
@@ -683,9 +681,7 @@
         }
       }
 
-      // 이번 달은 전체 그리기
       drawMonth(TARGET_YEAR, TARGET_MONTH, gridThis, true, PUBLIC_HOLIDAYS_THIS);
-      // 다음 달은 14일(2주)까지만 그리기
       drawMonth(NEXT_YEAR, NEXT_MONTH, gridNext, false, PUBLIC_HOLIDAYS_NEXT, 14);
 
       monthlyTotalCountEl.textContent = monthlyCheckedCount;
